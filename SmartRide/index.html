@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartRide - Minimal Transit Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Minimal Header -->
+  <header>
+    <div class="brand">
+      <span>SmartRide</span>
+      <span class="tagline">| Text-File Transit System (Phase 3 PBL)</span>
+    </div>
+
+    <nav>
+      <button class="nav-tab active" data-tab="tab-rides">Ride Operations</button>
+      <button class="nav-tab" data-tab="tab-map">Roads & Route</button>
+      <button class="nav-tab" data-tab="tab-files">Text-File Storage & Search</button>
+      <button class="nav-tab" data-tab="tab-dsa">C Algorithms (algorithms.c)</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ================= TAB 1: RIDE OPERATIONS ================= -->
+    <section id="tab-rides" class="tab-content active">
+      <div class="row">
+
+        <!-- Left: Forms -->
+        <div class="col-4">
+
+          <!-- Book Ride -->
+          <div class="panel">
+            <div class="panel-title">Book a Ride</div>
+            <form id="formBookRide">
+              <div class="form-group">
+                <label for="bookRiderSelect">Rider</label>
+                <select id="bookRiderSelect" required>
+                  <option value="">-- Select Rider --</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="display:flex;align-items:center;gap:6px;margin:10px 0;">
+                <input type="checkbox" id="bookShared" style="width:16px;height:16px;">
+                <label for="bookShared" style="margin:0;cursor:pointer;">Shared Ride (50% fare split)</label>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">Book Ride</button>
+            </form>
+          </div>
+
+          <!-- Register Rider -->
+          <div class="panel">
+            <div class="panel-title">Register Rider (smartride_data.txt)</div>
+            <form id="formRider">
+              <div class="form-group">
+                <label for="riderName">Name</label>
+                <input type="text" id="riderName" placeholder="e.g. Kaish Indian" required>
+              </div>
+              <div class="form-group">
+                <label for="riderPhone">Phone</label>
+                <input type="tel" id="riderPhone" placeholder="e.g. 9876543210" required>
+              </div>
+              <div class="form-group">
+                <label for="riderPickup">Pickup Location</label>
+                <select id="riderPickup" required></select>
+              </div>
+              <div class="form-group">
+                <label for="riderDest">Destination Location</label>
+                <select id="riderDest" required></select>
+              </div>
+              <div class="form-group">
+                <label for="riderSeats">Seats (1-4)</label>
+                <input type="number" id="riderSeats" min="1" max="4" value="1" required>
+              </div>
+              <button type="submit" class="btn btn-outline btn-block">Save to Text File</button>
+            </form>
+          </div>
+
+          <!-- Register Driver -->
+          <div class="panel">
+            <div class="panel-title">Register Driver (drivers.txt)</div>
+            <form id="formDriver">
+              <div class="form-group">
+                <label for="driverName">Name</label>
+                <input type="text" id="driverName" placeholder="e.g. Sunil Verma" required>
+              </div>
+              <div class="form-group">
+                <label for="driverPhone">Phone</label>
+                <input type="tel" id="driverPhone" placeholder="e.g. 9898989898" required>
+              </div>
+              <div class="form-group">
+                <label for="driverVehicle">Vehicle / Plate</label>
+                <input type="text" id="driverVehicle" placeholder="e.g. UK-07-CD-5678" required>
+              </div>
+              <button type="submit" class="btn btn-outline btn-block">Save Driver</button>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- Right: Tables -->
+        <div class="col-8">
+
+          <!-- Rides Table -->
+          <div class="panel">
+            <div class="panel-title">
+              <span>Rides (rides.txt)</span>
+              <span id="ridesCountBadge" class="badge">0 records</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Rider</th>
+                  <th>Driver</th>
+                  <th>Route</th>
+                  <th>Distance</th>
+                  <th>Fare</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ridesTbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Drivers Table -->
+          <div class="panel">
+            <div class="panel-title">
+              <span>Drivers (drivers.txt)</span>
+              <span id="driversCountBadge" class="badge">0 drivers</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Driver Name</th>
+                  <th>Phone</th>
+                  <th>Vehicle</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="driversTbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Riders Table -->
+          <div class="panel">
+            <div class="panel-title">
+              <span>Riders (smartride_data.txt)</span>
+              <span id="ridersCountBadge" class="badge">0 riders</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Route</th>
+                  <th>Seats</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ridersTbody"></tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: ROADS & DIJKSTRA ================= -->
+    <section id="tab-map" class="tab-content">
+      <div class="row">
+
+        <div class="col-4">
+          <!-- Route Finder -->
+          <div class="panel">
+            <div class="panel-title">Find Shortest Route (Dijkstra)</div>
+            <div class="form-group">
+              <label for="routeStart">From</label>
+              <select id="routeStart"></select>
+            </div>
+            <div class="form-group">
+              <label for="routeDest">To</label>
+              <select id="routeDest"></select>
+            </div>
+            <button class="btn btn-primary btn-block" id="btnFindRoute">Calculate Route</button>
+
+            <div id="routeResultBox" class="route-box" style="display:none;">
+              <div style="font-weight:600;margin-bottom:4px;">Shortest Path:</div>
+              <div id="routePathDisplay" style="font-size:13px;"></div>
+              <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">
+                Distance: <strong id="routeKmDisplay" style="color:var(--text);"></strong> | Fare: <strong
+                  id="routeFareDisplay" style="color:var(--text);"></strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Road -->
+          <div class="panel">
+            <div class="panel-title">Add Road Connection (roads.txt)</div>
+            <form id="formRoad">
+              <div class="form-group">
+                <label for="roadA">Location 1</label>
+                <input type="text" id="roadA" placeholder="e.g. Sahastradhara" required>
+              </div>
+              <div class="form-group">
+                <label for="roadB">Location 2</label>
+                <input type="text" id="roadB" placeholder="e.g. Clock Tower" required>
+              </div>
+              <div class="form-group">
+                <label for="roadKm">Distance in KM</label>
+                <input type="number" step="0.1" min="0.5" id="roadKm" placeholder="e.g. 12.0" required>
+              </div>
+              <button type="submit" class="btn btn-outline btn-block">Add to roads.txt</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-8">
+          <div class="panel">
+            <div class="panel-title">Dehradun Road Network Graph</div>
+            <canvas id="simpleGraphCanvas"></canvas>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+              Nodes represent road locations. Click any node to select it, or drag to position.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: TEXT-FILE STORAGE & SEARCH ================= -->
+    <section id="tab-files" class="tab-content">
+
+      <!-- Search Panel -->
+      <div class="panel">
+        <div class="panel-title">Rider Search (C Algorithms: Linear vs Binary Index)</div>
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <input type="text" id="searchInput" placeholder="Enter Rider ID (e.g. R1), Name, or Phone..." style="flex:1;">
+          <select id="searchType" style="width:220px;">
+            <option value="linear">Linear Search (O(n) text scan)</option>
+            <option value="binary_index">Binary Search (O(log n) .idx offset seek)</option>
+          </select>
+          <button class="btn btn-primary" id="btnSearch">Search</button>
+        </div>
+        <div id="searchOutput" style="font-size:13px;"></div>
+      </div>
+
+      <!-- Raw File Viewer -->
+      <div class="row">
+        <div class="col-6">
+          <div class="panel">
+            <div class="panel-title">
+              <span>View Backend Text Files</span>
+              <select id="rawFileSelect" style="width:180px;font-size:12px;padding:3px 6px;">
+                <option value="smartride_data.txt">smartride_data.txt</option>
+                <option value="smartride_data.idx">smartride_data.idx</option>
+              </select>
+            </div>
+            <pre class="raw-file" id="rawFileContent">(Loading...)</pre>
+          </div>
+        </div>
+
+        <div class="col-6">
+          <div class="panel">
+            <div class="panel-title">How the File DBMS Works</div>
+            <div style="font-size:13px;line-height:1.6;color:var(--text);">
+              <p><strong>1. Sequential File (smartride_data.txt):</strong><br>
+                Stores rider records formatted as <code>"id" "name" "phone" "from" "to" seats</code>.</p>
+
+              <p style="margin-top:10px;"><strong>2. Primary Index (smartride_data.idx):</strong><br>
+                Stores <code>"RiderID" ByteOffset</code> sorted by key. When searching by ID, binary search finds the
+                key in $O(\log n)$ and seeks directly to the exact byte offset in the text file using
+                <code>seekg()</code>.</p>
+
+              <p style="margin-top:10px;"><strong>3. Plain Text Tables:</strong><br>
+                <code>drivers.txt</code>, <code>roads.txt</code>, and <code>rides.txt</code> use delimiter-separated
+                records for lightweight persistence without requiring any SQL engine.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 4: C ALGORITHMS LAB ================= -->
+    <section id="tab-dsa" class="tab-content">
+      <div class="panel">
+        <div class="panel-title">
+          <span>Interactive C Algorithms Demonstrator</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="linear">Linear Search</button>
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="binary">Binary Search</button>
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="sort">Insertion Sort</button>
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="stack">Stack</button>
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="queue">Circular Queue</button>
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="list">Linked List</button>
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="bst">BST</button>
+            <button class="btn btn-outline btn-sm algo-btn" data-algo="hash">Hash Table</button>
+          </div>
+        </div>
+
+        <div id="dsaStage"
+          style="padding:16px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:4px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;" id="dsaActions"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+
+</html>
